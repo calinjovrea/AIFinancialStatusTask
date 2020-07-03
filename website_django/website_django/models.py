@@ -7,7 +7,7 @@ class Person(models.Model):
 	workSector = models.CharField(max_length=50)
 	education = models.CharField(max_length=50, default='HS-grad')
 	educationNum = models.IntegerField(default=9)
-	statusMarriage = models.CharField(max_length=15)
+	statusMarriage = models.CharField(max_length=30)
 	career = models.CharField(max_length=30)
 	relationship =models.CharField(max_length=30)
 	race = models.CharField(max_length=15, default='Other')
@@ -16,4 +16,3 @@ class Person(models.Model):
 	lostCapital = models.IntegerField()
 	hoursPerWeek = models.IntegerField(default=40)
 	country = models.CharField(max_length=50, default='United-States')
-	income = models.CharField(max_length=10)
