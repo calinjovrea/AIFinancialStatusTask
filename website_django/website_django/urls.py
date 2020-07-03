@@ -30,5 +30,6 @@ urlpatterns = [
     path('hello/', views.HelloView.as_view(), name='hello'),
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
     path('', include(router.urls)),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('persons-income/', views.PersonIncomeView.as_view(), name='persons_income'),
 ]

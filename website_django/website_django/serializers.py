@@ -6,3 +6,9 @@ class PersonSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Person
         fields = ('name', 'age','workSector', 'education', 'educationNum', 'statusMarriage', 'career', 'relationship', 'race', 'sex', 'gainedCapital', 'lostCapital', 'hoursPerWeek', 'country')
+
+
+class PersonIncomeSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Person
+        fields = ['id']
