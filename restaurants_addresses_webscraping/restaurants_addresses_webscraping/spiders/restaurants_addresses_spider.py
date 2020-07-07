@@ -1,5 +1,10 @@
+import chompjs
+import html
+import json
 import scrapy
-import w3lib.html
+
+from w3lib.html import remove_tags
+
 
 class AddressSpider(scrapy.Spider):
     name = "addressesofrestaurants"
@@ -22,49 +27,33 @@ class AddressSpider(scrapy.Spider):
 
     def parse(self, response):
         
+
         if 'tosseduk' in response.url:
-            tosseduk_address = self.tosseduk(response)
+            restaurant_id = 'tosseduk'
         
         if 'gbk' in response.url:
-            gbk_address = self.gbk(response)
+            restaurant_id = 'gbk'
 
         if 'superfishuk' in response.url:
-            superfishuk_address = self.superfishuk(response)
+            restaurant_id = 'superfishuk'
 
         if 'ivysohobrasserie' in response.url:
-            ivysohobrasserie_address = self.ivysohobrasserie(response)
+            restaurant_id = 'ivysohobrasserie'
+
+        selectors = response.xpath("//*[text()[contains(translate(.,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'address')]]")
+        
+        if 'script' in selectors[0].root.tag:
+            selectors_dict = chompjs.parse_js_object(selectors[0].get())
+            if 'address' in selectors_dict.keys():
+                if 'streetAddress' in selectors_dict['address'].keys():
+                    response.meta['addresses_of_restaurants'][restaurant_id] = selectors_dict['address']['streetAddress']
+            elif 'location' in selectors_dict.keys():
+                if 'address' in selectors_dict['location'].keys():
+                    response.meta['addresses_of_restaurants'][restaurant_id] = selectors_dict['location']['address']
+        else:
+            selector_items = response.css('.'+'.'.join([class_item for class_item in selectors[0].root.getparent().classes])).extract()
+            cleaned_items = ' '.join([w for w in remove_tags(selector_items[-1]).split(' ')[1:4]])
+            response.meta['addresses_of_restaurants'][restaurant_id] = html.unescape(cleaned_items)
 
         if len(response.meta['addresses_of_restaurants'].items()) == 4:
             return response.meta['addresses_of_restaurants']
-
-    def tosseduk(self, response):
-
-        tosseduk_address = response.css('p.adr span::text').extract()
-        
-        response.meta['addresses_of_restaurants']['tosseduk'] = ', '.join([list_item for list_item in tosseduk_address])
-
-        return response.meta['addresses_of_restaurants']['tosseduk']
-    
-    def gbk(self, response):
-
-        gbk_address = response.css('div.location-address p::text').extract()
-
-        response.meta['addresses_of_restaurants']['gbk'] = gbk_address[0]
-
-        return response.meta['addresses_of_restaurants']['gbk']
-
-    def superfishuk(self, response):
-
-        superfishuk_address = response.css('div.gdlr-item.gdlr-content-item p::text').extract()
-        
-        response.meta['addresses_of_restaurants']['superfishuk'] = ', '.join([list_item.strip(' ') for list_item in superfishuk_address[1:5]])
-
-        return response.meta['addresses_of_restaurants']['superfishuk'] 
-
-    def ivysohobrasserie(self, response):
-
-        ivysohobrasserie_address = response.css('div.landing-contact__address::text').extract()
-
-        response.meta['addresses_of_restaurants']['ivysohobrasserie'] = ' '.join([list_item.strip() for list_item in ivysohobrasserie_address[1:3]])
-        
-        return response.meta['addresses_of_restaurants']['ivysohobrasserie'] 
