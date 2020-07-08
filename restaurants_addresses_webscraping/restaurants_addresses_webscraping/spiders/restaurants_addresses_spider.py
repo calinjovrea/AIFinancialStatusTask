@@ -1,9 +1,4 @@
-import chompjs
-import html
-import json
 import scrapy
-
-from w3lib.html import remove_tags
 
 
 class AddressSpider(scrapy.Spider):
@@ -19,41 +14,14 @@ class AddressSpider(scrapy.Spider):
             'https://theivysohobrasserie.com/',
         ]
         
-        addresses_of_restaurants_dict = {}
         headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0'}
         
         for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse, meta={'addresses_of_restaurants': addresses_of_restaurants_dict}, headers=headers)
+            yield scrapy.Request(url=url, callback=self.parse, headers=headers)
 
     def parse(self, response):
         
+        regex_selectors_results = response.xpath('string(//*)').re(r"\d{1,2}\D\d+[ ]\w+[ ]\w+")
+        regex_selectors_results = [regex_selectors_result for regex_selectors_result in regex_selectors_results]
 
-        if 'tosseduk' in response.url:
-            restaurant_id = 'tosseduk'
-        
-        if 'gbk' in response.url:
-            restaurant_id = 'gbk'
-
-        if 'superfishuk' in response.url:
-            restaurant_id = 'superfishuk'
-
-        if 'ivysohobrasserie' in response.url:
-            restaurant_id = 'ivysohobrasserie'
-
-        selectors = response.xpath("//*[text()[contains(translate(.,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'address')]]")
-        
-        if 'script' in selectors[0].root.tag:
-            selectors_dict = chompjs.parse_js_object(selectors[0].get())
-            if 'address' in selectors_dict.keys():
-                if 'streetAddress' in selectors_dict['address'].keys():
-                    response.meta['addresses_of_restaurants'][restaurant_id] = selectors_dict['address']['streetAddress']
-            elif 'location' in selectors_dict.keys():
-                if 'address' in selectors_dict['location'].keys():
-                    response.meta['addresses_of_restaurants'][restaurant_id] = selectors_dict['location']['address']
-        else:
-            selector_items = response.css('.'+'.'.join([class_item for class_item in selectors[0].root.getparent().classes])).extract()
-            cleaned_items = ' '.join([w for w in remove_tags(selector_items[-1]).split(' ')[1:4]])
-            response.meta['addresses_of_restaurants'][restaurant_id] = html.unescape(cleaned_items)
-
-        if len(response.meta['addresses_of_restaurants'].items()) == 4:
-            return response.meta['addresses_of_restaurants']
+        return {'restaurant_street_address': regex_selectors_results[0]}
