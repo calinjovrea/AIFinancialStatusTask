@@ -5,8 +5,7 @@ class AddressSpider(scrapy.Spider):
     name = "addressesofrestaurants"
 
     def start_requests(self):
-
-
+    	
         urls = [
             'https://tosseduk.com/locations/baker-street/',
             'https://www.gbk.co.uk/location/covent-garden?address',
