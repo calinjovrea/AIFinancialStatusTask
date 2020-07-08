@@ -22,6 +22,5 @@ class AddressSpider(scrapy.Spider):
     def parse(self, response):
         
         regex_selectors_results = response.xpath('string(//*)').re(r"\d{1,2}\D\d+[ ]\w+[ ]\w+")
-        regex_selectors_results = [regex_selectors_result for regex_selectors_result in regex_selectors_results]
-
+        
         return {'restaurant_street_address': regex_selectors_results[0]}
